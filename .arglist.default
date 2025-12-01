@@ -1,0 +1,17 @@
+## Define Docker build stage.
+# The options are: prod_image, dev_image, or if a release is checked out, the release number.
+# The image will be tagged with BUILD_STAGE or the git tag.
+BUILD_STAGE=dev_image
+CONTAINER_USER=user
+IMAGE_NAME=pcl
+IMAGE_TAG=pcl-1.7.2
+SHARED_DIR=/home/vanderbeck/Projects
+
+## Core Software dependencies
+# Change these at your own risk. Will mean rebuilding images.
+PCL_VERSION=1.7.2
+OPENCV_VERSION=4.1.2
+# EIGEN_VERSION=3.0.0
+# CUDA_ARCH_BIN=7.5
+# CUDA_VERSION=11.4
+# BASE_IMAGE=ros:foxy-ros-base

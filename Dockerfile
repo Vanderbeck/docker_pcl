@@ -4,8 +4,8 @@
 # syntax=docker/dockerfile:1
 ARG PCL_VERSION=${PCL_VERSION}
 ARG OPENCV_VERSION=${OPENCV_VERSION}
-FROM ubuntu:16.04 AS base-image
-RUN apt-get update && apt-get install -y  --no-install-recommends \
+FROM nvidia/cuda:11.3.1-base AS base-image
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC && apt-get update && apt-get install -y  --no-install-recommends \
     build-essential \
     cmake \
     curl \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y  --no-install-recommends \
     libcanberra-gtk-module \
     libcminpack-dev \
     libeigen3-dev \
-    libflann1.8 \
+    libflann1.9 \
     libflann-dev \
     libgtest-dev \
     libgtk2.0-dev \
@@ -23,9 +23,9 @@ RUN apt-get update && apt-get install -y  --no-install-recommends \
     libudev-dev \
     libusb-1.0-0-dev \
     libusb-dev \
-    libvtk5.10-qt4 \
-    libvtk5.10 \
-    libvtk5-dev \
+    libvtk6.3-qt \
+    libvtk6.3 \
+    libvtk6-dev \
     libxi-dev \
     libxmu-dev \
     linux-libc-dev \
@@ -58,8 +58,8 @@ RUN cd /tmp && wget https://github.com/PointCloudLibrary/pcl/archive/pcl-${PCL_V
 
 # PCL build modules (be aware that some modules depend from another ones)
 ENV BUILD_MODULES   -DBUILD_2d=ON \
-                    -DBUILD_CUDA=OFF \
-                    -DBUILD_GPU=OFF \
+                    -DBUILD_CUDA=ON \
+                    -DBUILD_GPU=ON \
                     -DBUILD_apps=OFF \
                     -DBUILD_benchmarks=OFF \
                     -DBUILD_common=ON \
@@ -92,7 +92,7 @@ ENV CMAKE_CONFIG -DCMAKE_INSTALL_PREFIX:PATH=/tmp/pcl-pcl-${PCL_VERSION}/install
                  -DCMAKE_BUILD_TYPE=Release
 
 # Set flags support
-ENV WITH_CONFIG -DWITH_CUDA=OFF \
+ENV WITH_CONFIG -DWITH_CUDA=ON \
                 -DWITH_DAVIDSDK=OFF \
                 -DWITH_DOCS=OFF \
                 -DWITH_DSSDK=OFF \
@@ -108,8 +108,7 @@ ENV WITH_CONFIG -DWITH_CUDA=OFF \
                 -DWITH_RSSDK=OFF \
                 -DWITH_RSSDK2=OFF \
                 -DWITH_VTK=ON
-
-# Set vtk backend rendering
+# # Set vtk backend rendering
 ARG VTK_CONFIG -DVTK_RENDERING_BACKEND=OpenGL2
 
 # Compile pcl

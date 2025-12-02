@@ -4,12 +4,12 @@
 BUILD_STAGE=dev_image
 CONTAINER_USER=user
 IMAGE_NAME=pcl
-IMAGE_TAG=pcl-1.7.2
+IMAGE_TAG=pcl-1.10.1
 SHARED_DIR=/home/vanderbeck/Projects
 
 ## Core Software dependencies
 # Change these at your own risk. Will mean rebuilding images.
-PCL_VERSION=1.7.2
+PCL_VERSION=1.10.1
 OPENCV_VERSION=4.1.2
 # EIGEN_VERSION=3.0.0
 # CUDA_ARCH_BIN=7.5

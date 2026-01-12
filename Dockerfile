@@ -4,46 +4,33 @@
 # syntax=docker/dockerfile:1
 ARG PCL_VERSION=${PCL_VERSION}
 ARG OPENCV_VERSION=${OPENCV_VERSION}
-FROM nvidia/cuda:11.3.1-base AS base-image
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC && apt-get update && apt-get install -y  --no-install-recommends \
-    build-essential \
+FROM nvidia/cuda:13.0.2-base-ubuntu24.04 AS base-image
+RUN apt-get update && apt-get install -y  --no-install-recommends \
+    build-essential \ 
     cmake \
     curl \
-    freeglut3-dev \
     g++ \
+    libatlas-base-dev \
+    libavutil-dev \
     libboost-all-dev \
-    libcanberra-gtk-module \
-    libcminpack-dev \
     libeigen3-dev \
-    libflann1.9 \
     libflann-dev \
-    libgtest-dev \
-    libgtk2.0-dev \
-    libqhull* \
-    libudev-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgtk3.0-cil-dev \
+    libnanoflann-dev \
+    libqt5opengl5-dev \
+    libopenni-dev \
+    libopenni2-dev \
     libusb-1.0-0-dev \
-    libusb-dev \
-    libvtk6.3-qt \
-    libvtk6.3 \
-    libvtk6-dev \
-    libxi-dev \
-    libxmu-dev \
-    linux-libc-dev \
+    libvtk9-dev \
+    libvtk9-qt-dev \
+    libqhull-dev \
     make \
-    mono-complete \
-    mpi-default-dev \
-    openjdk-8-jre \
-    openjdk-8-jdk \
-    openmpi-bin \
-    openmpi-common \
-    pkg-config \
     sudo \
     unzip \
     vim \
     wget \
     && rm -rf /var/lib/apt/lists/*
-
-
 
 
 
@@ -58,7 +45,7 @@ RUN cd /tmp && wget https://github.com/PointCloudLibrary/pcl/archive/pcl-${PCL_V
 
 # PCL build modules (be aware that some modules depend from another ones)
 ENV BUILD_MODULES   -DBUILD_2d=ON \
-                    -DBUILD_CUDA=ON \
+                    -DBUILD_CUDA=OFF \
                     -DBUILD_GPU=ON \
                     -DBUILD_apps=OFF \
                     -DBUILD_benchmarks=OFF \
@@ -74,15 +61,16 @@ ENV BUILD_MODULES   -DBUILD_2d=ON \
                     -DBUILD_ml=ON \
                     -DBUILD_octree=ON \
                     -DBUILD_outofcore=ON \
-                    -DBUILD_people=OFF \
+                    -DBUILD_people=ON \
                     -DBUILD_recognition=OFF \
                     -DBUILD_registration=ON \
                     -DBUILD_sample_consensus=ON \
                     -DBUILD_search=ON \
                     -DBUILD_segmentation=ON \
-                    -DBUILD_simulation=ON \
-                    -DBUILD_stereo=OFF \
+                    -DBUILD_simulation=OFF \
+                    -DBUILD_stereo=ON \
                     -DBUILD_surface=ON \
+                    -DBUILD_surface_on_nurbs=OFF \
                     -DBUILD_tools=ON \
                     -DBUILD_tracking=ON \
                     -DBUILD_visualization=ON
@@ -92,19 +80,19 @@ ENV CMAKE_CONFIG -DCMAKE_INSTALL_PREFIX:PATH=/tmp/pcl-pcl-${PCL_VERSION}/install
                  -DCMAKE_BUILD_TYPE=Release
 
 # Set flags support
-ENV WITH_CONFIG -DWITH_CUDA=ON \
+ENV WITH_CONFIG -DWITH_CUDA=OFF \
                 -DWITH_DAVIDSDK=OFF \
                 -DWITH_DOCS=OFF \
                 -DWITH_DSSDK=OFF \
                 -DWITH_ENSENSO=OFF \
-                -DWITH_LIBUSB=OFF \
+                -DWITH_LIBUSB=ON \
                 -DWITH_OPENGL=ON \
                 -DWITH_OPENMP=ON \
-                -DWITH_OPENNI=OFF \
-                -DWITH_OPENNI2=OFF \
+                -DWITH_OPENNI=ON \
+                -DWITH_OPENNI2=ON \
                 -DWITH_PCAP=OFF \
                 -DWITH_PNG=OFF \
-                -DWITH_QHULL=OFF \
+                -DWITH_QHULL=ON \
                 -DWITH_RSSDK=OFF \
                 -DWITH_RSSDK2=OFF \
                 -DWITH_VTK=ON
@@ -127,8 +115,24 @@ ENV WITH_CONFIG=
 # Stage: opencv build
 # ============================
 
+
 FROM base-image AS opencv-build
+
 ARG OPENCV_VERSION
+ENV BUILD_MODULES   -DENABLE_FAST_MATH=ON \
+                    -DOPENCV_ENABLE_NONFREE=ON \
+                    -DOPENCV_GENERATE_PKGCONFIG=ON 
+
+ENV CMAKE_CONFIG    -DCMAKE_BUILD_TYPE=RELEASE \
+                    -DCMAKE_INSTALL_PREFIX=/tmp/opencv-${OPENCV_VERSION}/install \
+                    -DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${OPENCV_VERSION}/modules 
+
+ENV WITH_CONFIG     -DWITH_OPENGL=ON \
+                    -DWITH_QT=ON \
+                    -DWITH_OPENNI=ON \
+                    -DWITH_OPENNI2=ON \
+                    -DWITH_QT=ON
+
 RUN cd /tmp && \
 wget -O opencv.zip https://github.com/opencv/opencv/archive/refs/tags/${OPENCV_VERSION}.zip && \
 wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/refs/tags/${OPENCV_VERSION}.zip && \
@@ -137,7 +141,7 @@ unzip opencv_contrib.zip && \
 cd /tmp/opencv-${OPENCV_VERSION} && \
 mkdir build && \
 cd build && \
-cmake -DCMAKE_BUILD_TYPE=Release -DOPENCV_ENABLE_NONFREE:BOOL=ON -DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${OPENCV_VERSION}/modules -DCMAKE_INSTALL_PREFIX:PATH=/tmp/opencv-${OPENCV_VERSION}/install .. && \
+cmake ${BUILD_MODULES} ${CMAKE_CONFIG} ${WITH_CONFIG} .. && \
 make -j$(nproc) && \
 make install
 
@@ -160,14 +164,14 @@ RUN apt-get update && apt-get install -y  --no-install-recommends \
 
 # Repository and container related environment variables
 ARG CONTAINER_HOME
-ENV CONTAINER_HOME $CONTAINER_HOME
+ENV CONTAINER_HOME=$CONTAINER_HOME
 
 
 # Setup the User
 ARG CONTAINER_USER USER_ID GROUP_ID
-ENV CONTAINER_USER $CONTAINER_USER
-ENV USER_ID $USER_ID
-ENV GROUP_ID $GROUP_ID
+ENV CONTAINER_USER=$CONTAINER_USER
+ENV USER_ID=$USER_ID
+ENV GROUP_ID=$GROUP_ID
 RUN useradd -m "${CONTAINER_USER}" && \
     echo "${CONTAINER_USER}:${CONTAINER_USER}" | chpasswd && \
     usermod --shell /bin/bash ${CONTAINER_USER} && \
@@ -176,12 +180,13 @@ RUN useradd -m "${CONTAINER_USER}" && \
 
 RUN echo "${CONTAINER_USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${CONTAINER_USER} && \
     chmod 0440 /etc/sudoers.d/${CONTAINER_USER} && \
+    deluser --remove-home ubuntu&& \
     usermod  --uid ${USER_ID} ${CONTAINER_USER} && \
-    groupmod --gid ${GROUP_ID} ${CONTAINER_USER};
+    groupmod --gid ${GROUP_ID} ${CONTAINER_USER}
 
 USER ${CONTAINER_USER}
 # Set and create XDG_RUNTIME_DIR
-ENV XDG_RUNTIME_DIR /tmp/runtime-${CONTAINER_USER}
+ENV XDG_RUNTIME_DIR=/tmp/runtime-${CONTAINER_USER}
 RUN mkdir -p ${XDG_RUNTIME_DIR}
 # Starting params
 WORKDIR ${CONTAINER_HOME}

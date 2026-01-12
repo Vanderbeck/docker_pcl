@@ -13,12 +13,9 @@ fi
 # Read arguments
 IMAGE_NAME=$1
 IMAGE_TAG=$2
-# BASE_IMAGE=$4
 CONTAINER_HOME=$3
-# CONTAINER_REPO_DIR=$6
 CONTAINER_USER=$4
 PCL_VERSION=$5
-# EIGEN_VERSION=$7
 OPENCV_VERSION=$6
 
 echo "Permissions for container from host user."
@@ -31,7 +28,6 @@ echo "Container User: $CONTAINER_USER"
 # echo "CUDA Variables"
 # export CUDA_ARCH_SM=${CUDA_ARCH_BIN//./}
 # echo "CUDA_ARCH_BIN:  $CUDA_ARCH_BIN"
-# echo "CUDA_ARCH_SM:   $CUDA_ARCH_SM"
 # echo ""
 
 echo ""
@@ -46,8 +42,3 @@ docker build --progress plain \
   -t ${IMAGE_NAME}:${IMAGE_TAG} \
   --target runtime \
   -f Dockerfile .
-
-  # --build-arg CONTAINER_REPO_DIR=${CONTAINER_REPO_DIR} \
-  # --build-arg EIGEN_VERSION=${EIGEN_VERSION}\
-  # --build-arg IMAGE_NAME=${IMAGE_NAME} \
-  # --build-arg BASE_IMAGE=${BASE_IMAGE} \

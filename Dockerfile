@@ -44,7 +44,7 @@ RUN cd /tmp && wget https://github.com/PointCloudLibrary/pcl/archive/pcl-${PCL_V
     && tar -xf pcl-${PCL_VERSION}.tar.gz
 
 # PCL build modules (be aware that some modules depend from another ones)
-ENV BUILD_MODULES   -DBUILD_2d=ON \
+ENV BUILD_MODULES=-DBUILD_2d=ON \
                     -DBUILD_CUDA=OFF \
                     -DBUILD_GPU=ON \
                     -DBUILD_apps=OFF \
@@ -76,11 +76,11 @@ ENV BUILD_MODULES   -DBUILD_2d=ON \
                     -DBUILD_visualization=ON
 
 # Install pcl at /usr
-ENV CMAKE_CONFIG -DCMAKE_INSTALL_PREFIX:PATH=/tmp/pcl-pcl-${PCL_VERSION}/install/ \
+ENV CMAKE_CONFIG=-DCMAKE_INSTALL_PREFIX:PATH=/tmp/pcl-pcl-${PCL_VERSION}/install/ \
                  -DCMAKE_BUILD_TYPE=Release
 
 # Set flags support
-ENV WITH_CONFIG -DWITH_CUDA=OFF \
+ENV WITH_CONFIG=-DWITH_CUDA=OFF \
                 -DWITH_DAVIDSDK=OFF \
                 -DWITH_DOCS=OFF \
                 -DWITH_DSSDK=OFF \
@@ -119,15 +119,15 @@ ENV WITH_CONFIG=
 FROM base-image AS opencv-build
 
 ARG OPENCV_VERSION
-ENV BUILD_MODULES   -DENABLE_FAST_MATH=ON \
+ENV BUILD_MODULES=-DENABLE_FAST_MATH=ON \
                     -DOPENCV_ENABLE_NONFREE=ON \
                     -DOPENCV_GENERATE_PKGCONFIG=ON 
 
-ENV CMAKE_CONFIG    -DCMAKE_BUILD_TYPE=RELEASE \
+ENV CMAKE_CONFIG=-DCMAKE_BUILD_TYPE=RELEASE \
                     -DCMAKE_INSTALL_PREFIX=/tmp/opencv-${OPENCV_VERSION}/install \
                     -DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${OPENCV_VERSION}/modules 
 
-ENV WITH_CONFIG     -DWITH_OPENGL=ON \
+ENV WITH_CONFIG=-DWITH_OPENGL=ON \
                     -DWITH_QT=ON \
                     -DWITH_OPENNI=ON \
                     -DWITH_OPENNI2=ON \
